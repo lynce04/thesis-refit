@@ -1,0 +1,38 @@
+# Anforderungsanalyse – Entwurf
+
+Stand: Runde 1 (Kontext und funktionale Anforderungen). Nicht-funktionale Anforderungen folgen in Runde 2.
+Priorität: **MUSS** / **SOLL** / **KANN**.
+
+---
+
+## 1. Kontext
+
+Eine Person in einem Privathaushalt möchte lokal und ohne Cloud-Dienst sehen, welche Arten von Geräten an einem Messpunkt geschaltet werden. Zusätzlich soll sie Hinweise erhalten, wenn die Nutzung ungewöhnlich wirkt, z. B. wenn ein Gerät deutlich länger läuft als üblich. Das System gibt Hinweise auf statistische Auffälligkeiten, keine Fehlerdiagnosen und keine Sicherheitswarnungen.
+
+Messaufbau: Mehrere Verbraucher hängen hinter einer gemeinsamen Messsteckdose. Ein Mikrocontroller liest deren Leistungswerte lokal aus, wertet sie aus und stellt die Ergebnisse auf einer Webseite im lokalen WLAN bereit.
+
+## 2. Funktionale Anforderungen
+
+| Nr. | Anforderung | Priorität |
+|---|---|---|
+| F1 | **Eventmeldung:** Das System erkennt Schaltereignisse im Leistungssignal der Messsteckdose und meldet je Ereignis den Lasttyp (kurze Hochlast, Dauerlast, Motorlast), die Richtung (EIN/AUS) und den Zeitpunkt. | MUSS |
+| F2 | **Unbekannte Ereignisse:** Ereignisse, die keinem Lasttyp sicher zugeordnet werden können, werden als „unbekannt" gemeldet statt einer Klasse zugewiesen. | SOLL |
+| F3 | **Anomalie-Score:** Das System berechnet für jedes Profilfenster einen Anomalie-Score und aktualisiert ihn einmal pro Minute. | MUSS |
+| F4 | **Hinweistexte:** Überschreitet der Score eine Schwelle, zeigt das System einen verständlichen Hinweis an (z. B. „ungewöhnlich lange Nutzung"). | SOLL |
+| F5 | **Weboberfläche:** Eine Webseite zeigt die aktuelle Leistung, die Liste der letzten Ereignisse und den aktuellen Anomalie-Score. Sie ist per Smartphone-Browser im lokalen WLAN erreichbar, ohne App und ohne Internetverbindung. | MUSS |
+| F6 | **Leistungsverlauf:** Die Webseite zeigt einen fortlaufend aktualisierten Graphen der Leistung über die letzten Minuten (Zeitraum noch offen). | SOLL |
+| F7 | **Verbindungsausfall:** Ist die Messsteckdose nicht erreichbar, zeigt die Webseite „Verbindung zur Messsteckdose unterbrochen seit hh:mm" mit der Dauer der Unterbrechung. Alte Werte werden nicht als aktuell angezeigt, aus der Lücke werden keine Ereignisse erzeugt, und das System nimmt die Auswertung nach Wiederherstellung der Verbindung selbstständig wieder auf. | MUSS |
+| F8 | **Wiedergabemodus:** Statt Live-Daten kann das System aufgezeichnete eigene Messdaten abspielen und genauso auswerten, z. B. für die Präsentation im Kolloquium. | KANN |
+
+## 3. Nicht-funktionale Anforderungen
+
+Folgen in Runde 2 (Reaktionszeit, Speicher- und Rechenbedarf auf dem ESP32-S3, Erkennungsqualität, Fehlalarme, Datenschutz, Robustheit).
+
+## 4. Randbedingungen
+
+| Nr. | Randbedingung |
+|---|---|
+| R1 | Hardware: ESP32-S3-DevKitC-1 N16R8 (16 MB Flash, 8 MB PSRAM), Messsteckdose Shelly Plug M Gen3 (max. 13 A / 3000 W ohmsche Last). |
+| R2 | Alle Verarbeitung erfolgt lokal, ohne Cloud-Dienst. |
+| R3 | Training und quantitative Evaluation der Modelle auf dem REFIT-Datensatz; eigene Messungen nur zur Kalibrierung und zum Praxistest. |
+| R4 | Testgeräte im Praxistest: Wasserkocher (kurze Hochlast), Monitor (Dauerlast), Ventilator (Motorlast). |

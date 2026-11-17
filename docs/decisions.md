@@ -74,6 +74,15 @@ Status: **fest** (entschieden), **vorläufig** (Arbeitsannahme, kann sich änder
 ## E10 Sprache und Format der Arbeit – fest
 - Die Arbeit wird auf Deutsch geschrieben, in LaTeX (Vorlage HTW-Thesis). Dieses Protokoll ebenfalls auf Deutsch, der Code bleibt englisch (E9).
 
+## E11 Hardware – bestellt
+- Mikrocontroller: ESP32-S3-DevKitC-1 N16R8 (Nachbau von diymore, 2 Stück): 16 MB Flash, 8 MB PSRAM.
+- Messsteckdose: Shelly Plug M Gen3 (2 Stück), EU-Version für Schuko/Typ-F-Steckdosen, 220–240 V, max. 13 A / 3000 W (ohmsche Last), lokale HTTP-Schnittstelle.
+- Folgerungen für den Messaufbau:
+  - Die Summe der Testgeräte muss deutlich unter 3000 W bleiben → Wasserkocher mit höchstens ca. 2200 W wählen.
+  - Der Monitor braucht ein Eingangssignal (z. B. Laptop), sonst geht er in Standby und liefert keine Dauerlast.
+  - Die Testgeräte hängen über eine Mehrfachsteckdose an einer Messsteckdose.
+- Offen: Begründung der Hardwahl gegenüber Alternativen im Kapitel Technologieauswahl.
+
 ---
 
 ## Offene Fragen
@@ -82,3 +91,4 @@ Status: **fest** (entschieden), **vorläufig** (Arbeitsannahme, kann sich änder
 - Welche REFIT-Häuser genutzt werden (abhängig von der Abdeckung der Lasttypen).
 - Quelle und Format der annotierten REFIT-Anomalien (Rashid et al. 2019).
 - Profilfenster: 30 oder 60 min, Schrittweite.
+- Zeitraum des Leistungsgraphen auf der Webseite (F6).
