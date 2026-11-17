@@ -1,7 +1,7 @@
 # Anforderungsanalyse – Entwurf
 
-Stand: Runde 1 (Kontext und funktionale Anforderungen). Nicht-funktionale Anforderungen folgen in Runde 2.
-Priorität: **MUSS** / **SOLL** / **KANN**.
+Stand: Runde 1 (Kontext, funktionale Anforderungen) und Runde 2 (nicht-funktionale Anforderungen).
+Priorität: **MUSS** / **SOLL** / **KANN**. Mit *(vorläufig)* markierte Zahlen sind begründete Schätzungen und werden nach ersten Messungen überprüft.
 
 ---
 
@@ -26,13 +26,57 @@ Messaufbau: Mehrere Verbraucher hängen hinter einer gemeinsamen Messsteckdose. 
 
 ## 3. Nicht-funktionale Anforderungen
 
-Folgen in Runde 2 (Reaktionszeit, Speicher- und Rechenbedarf auf dem ESP32-S3, Erkennungsqualität, Fehlalarme, Datenschutz, Robustheit).
+### 3.1 Zeitverhalten
+
+| Nr. | Anforderung | Priorität |
+|---|---|---|
+| N1 | **Meldezeit:** Ein Schaltereignis erscheint spätestens 30 s nach dem Schaltvorgang auf der Webseite. | MUSS |
+| N2 | **Verarbeitungszeit:** Die gesamte Verarbeitung eines neuen Messwerts (beide Modelle) dauert auf dem ESP32-S3 weniger als 1 s. Gemessen als Median mehrerer Durchläufe auf der spezifizierten Hardware, erster Durchlauf ausgeschlossen. | MUSS |
+
+### 3.2 Ressourcen
+
+| Nr. | Anforderung | Priorität |
+|---|---|---|
+| N3a | **Gemeinsamer Betrieb:** Beide Modelle, der Webserver und eine Wiedergabeaufzeichnung laufen gleichzeitig auf dem ESP32-S3. | MUSS |
+| N3b | **Modellgröße:** Jedes INT8-Modell belegt höchstens 1 MB Flash, sein Arbeitsspeicher (Tensor Arena) höchstens 256 KB, sodass es im internen SRAM ohne PSRAM läuft. *(vorläufig)* | SOLL |
+
+### 3.3 Erkennungsqualität
+
+| Nr. | Anforderung | Priorität |
+|---|---|---|
+| N4 | **Eventerkennung:** Das beste Modell übertrifft das einfache Referenzverfahren auf dem REFIT-Testdatensatz im Macro-F1. | MUSS |
+| N5 | **Quantisierungsverlust:** Das INT8-Modell auf dem ESP32-S3 verliert höchstens 3 Prozentpunkte Macro-F1 gegenüber dem Gleitkommamodell auf dem PC. *(vorläufig)* | SOLL |
+| N6a | **Anomalieerkennung:** Das beste Modell übertrifft das Z-Score-Referenzverfahren in der PR-AUC auf den annotierten REFIT-Anomalien. | MUSS |
+| N6b | **Fehlalarme:** Höchstens 2 falsche Hinweise pro Tag. *(vorläufig)* | SOLL |
+| N7a | **Praxistest, Auswertung:** Die Ergebnisse des Praxistests werden je Lasttyp als Konfusionsmatrix berichtet. Grundlage ist ein Protokoll der tatsächlichen Schaltzeitpunkte. | MUSS |
+| N7b | **Praxistest, Zielwert:** Mindestens 70 % der Schaltereignisse im Praxistest erhalten den richtigen Lasttyp. *(vorläufig)* | SOLL |
+
+### 3.4 Datenschutz, Betrieb, Wartbarkeit
+
+| Nr. | Anforderung | Priorität |
+|---|---|---|
+| N8a | **Datenschutz:** Keine Messdaten verlassen das lokale Netz; die Messsteckdose wird ausschließlich lokal angesprochen. | MUSS |
+| N8b | **Zugriffsschutz:** Die Webseite ist durch ein Passwort geschützt. | KANN |
+| N9a | **Dauerbetrieb:** Mikrocontroller und Software laufen 7 Tage ohne manuellen Neustart. | MUSS |
+| N9b | **Neustart nach Stromausfall:** Nach einem Stromausfall startet das System selbstständig und nimmt die Auswertung wieder auf. | SOLL |
+| N10 | **Reproduzierbarkeit:** Datenaufbereitung und Training lassen sich aus dem Git-Repository nachvollziehen (README, requirements.txt, feste Zufalls-Seeds). | MUSS |
 
 ## 4. Randbedingungen
 
 | Nr. | Randbedingung |
 |---|---|
-| R1 | Hardware: ESP32-S3-DevKitC-1 N16R8 (16 MB Flash, 8 MB PSRAM), Messsteckdose Shelly Plug M Gen3 (max. 13 A / 3000 W ohmsche Last). |
+| R1 | Hardware: ESP32-S3-DevKitC-1 N16R8 (16 MB Flash, 8 MB PSRAM, ca. 512 KB internes SRAM), Messsteckdose Shelly Plug M Gen3 (max. 13 A / 3000 W ohmsche Last). |
 | R2 | Alle Verarbeitung erfolgt lokal, ohne Cloud-Dienst. |
 | R3 | Training und quantitative Evaluation der Modelle auf dem REFIT-Datensatz; eigene Messungen nur zur Kalibrierung und zum Praxistest. |
 | R4 | Testgeräte im Praxistest: Wasserkocher (kurze Hochlast), Monitor (Dauerlast), Ventilator (Motorlast). |
+
+## 5. Folgerungen für den Entwurf
+
+- **Aus N1 (Meldezeit):** Die Meldezeit setzt sich im ungünstigsten Fall zusammen aus
+  - der Wartezeit bis zur nächsten Abfrage (bis zu 1 Rasterabstand),
+  - der Wartezeit auf n Punkte nach dem Sprung (n × Rasterabstand),
+  - der Inferenzzeit (Millisekunden, vernachlässigbar),
+  - dem Aktualisierungsintervall der Webseite.
+
+  Bei 8-s-Raster und einer Webseiten-Aktualisierung alle 5 s ergibt sich: n = 2 → 8 + 16 + 5 = 29 s (erfüllt N1); n = 3 → 8 + 24 + 5 = 37 s (verletzt N1). Das Eventfenster enthält daher höchstens 2 Punkte nach dem Sprung, die Webseite aktualisiert sich höchstens alle 5 s. Reichen 2 Punkte zur Unterscheidung der Lasttypen nicht aus, wird N1 überprüft.
+- **Aus N7a (Praxistest):** Während der eigenen Messung werden die Schaltzeitpunkte jedes Testgeräts protokolliert (manuell und/oder über eine zweite Messsteckdose direkt am Wasserkocher).

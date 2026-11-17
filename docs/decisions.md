@@ -83,10 +83,21 @@ Status: **fest** (entschieden), **vorläufig** (Arbeitsannahme, kann sich änder
   - Die Testgeräte hängen über eine Mehrfachsteckdose an einer Messsteckdose.
 - Offen: Begründung der Hardwahl gegenüber Alternativen im Kapitel Technologieauswahl.
 
+## E12 Eventfenster: Punkte nach dem Sprung – vorläufig: höchstens 2
+- Folgt aus N1 (Meldezeit ≤ 30 s): bei 8-s-Raster und 5-s-Webseitenaktualisierung ergibt n = 2 im ungünstigsten Fall 29 s, n = 3 schon 37 s.
+- Punkte **vor** dem Sprung kosten keine Wartezeit und können frei ergänzt werden (z. B. als Grundlast-Referenz).
+- Offen: Ob 2 Punkte nach dem Sprung zur Unterscheidung der Lasttypen ausreichen, wird experimentell geprüft: Klassifikator mit n = 1, 2, 3, 4 trainieren und Macro-F1 vergleichen. Bringt n = 3 oder 4 einen deutlichen Gewinn, wird N1 neu abgewogen.
+
+## E13 Übertragung zur Webseite – offen
+- Die Webseite lädt einmal und holt danach nur kleine JSON-Daten nach, statt die ganze Seite neu zu laden.
+- Varianten: Abfrage im festen Intervall (≤ 5 s, Polling) oder Push vom ESP32 (Server-Sent Events / WebSocket), bei dem die Wartezeit der Webseite praktisch entfällt.
+- Wird in der Technologieauswahl entschieden.
+
 ---
 
 ## Offene Fragen
-- Event-Definition: Sprungschwelle (aktuell 100 W als Startwert), Fensterlänge.
+- **Sprungschwelle:** 100 W ist zu hoch für den Praxistest. Monitor und Ventilator springen voraussichtlich nur um einige zehn Watt und würden nicht erkannt. Die Schwelle muss so niedrig liegen, dass diese Sprünge erfasst werden. Im REFIT-Gesamtsignal erzeugt eine niedrige Schwelle aber vermutlich viele Fehl-Events. Leistung der eigenen Testgeräte messen, sobald die Shelly da ist.
+- **Monitor vs. Ventilator:** Beide haben vermutlich ähnlich kleine, konstante Leistung. Unterscheidung bei 8-s-Abtastung möglicherweise schwierig, unabhängig von der Fensterlänge (Anlaufspitzen von Motoren dauern meist deutlich unter 1 s).
 - Aufteilung Training/Validierung/Test: nach Häusern und/oder Zeitblöcken – welche Häuser.
 - Welche REFIT-Häuser genutzt werden (abhängig von der Abdeckung der Lasttypen).
 - Quelle und Format der annotierten REFIT-Anomalien (Rashid et al. 2019).
