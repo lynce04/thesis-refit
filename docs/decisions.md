@@ -14,7 +14,7 @@ Status: **fest** (entschieden), **vorläufig** (Arbeitsannahme, kann sich änder
 ## E2 Eventklassen: Lasttypen statt einzelner Geräte – fest
 - Klassen: kurze Hochlast (z. B. Wasserkocher), Dauerlast (z. B. Monitor, Fernseher, Computer), Motorlast (z. B. Kühlschrank, Ventilator).
 - Begründung: Der Praxistest nutzt Wasserkocher, Monitor und Ventilator. REFIT enthält Wasserkocher in vielen Häusern, aber kaum Monitore oder Ventilatoren als eigene Kanäle. Ein auf REFIT-Geräteklassen trainiertes Modell könnte die Testgeräte nicht erkennen. Lasttypen gibt es in beiden Datenquellen, und sie entsprechen dem Systemschaubild im Exposé.
-- Bekannte Einschränkung: Kühl- und Gefriergeräte schalten zyklisch selbst, der Ventilator wird von Hand geschaltet. Gleicher Lasttyp, anderes zeitliches Verhalten. Wird in der Evaluation diskutiert.
+- Bekannte Einschränkung: Kühl- und Gefriergeräte schalten zyklisch selbst, der Ventilator wird von Hand geschaltet. Gleicher Lasttyp, anderes zeitliches Verhalten. Wird in der Evaluation diskutiert (entfällt, falls E14 umgesetzt wird).
 - Verworfene Alternative: Geräteklassen mit Nachtraining auf eigenen Daten (widerspricht „eigene Daten nicht zum Training").
 
 ## E3 Datensatzversion und Metadaten – fest
@@ -93,11 +93,23 @@ Status: **fest** (entschieden), **vorläufig** (Arbeitsannahme, kann sich änder
 - Varianten: Abfrage im festen Intervall (≤ 5 s, Polling) oder Push vom ESP32 (Server-Sent Events / WebSocket), bei dem die Wartezeit der Webseite praktisch entfällt.
 - Wird in der Technologieauswahl entschieden.
 
+## E14 Motorlast im Praxistest: Gefriergerät statt Ventilator – offen (mit Betreuer abzustimmen)
+- Vorschlag: Der Ventilator wird im Praxistest durch ein Gefriergerät ersetzt.
+- Begründung:
+  - Der Ventilator liegt in der Leistung zu nah am Monitor (beide voraussichtlich einige zehn Watt); die beiden Lasttypen wären im Praxistest kaum unterscheidbar. Ein Gefrierkompressor liegt voraussichtlich deutlich höher.
+  - Gefriergeräte kommen in vielen REFIT-Häusern vor (Häuser 1, 3, 4, 6, 7, 8, 10, 17, 18, 20), Ventilatoren nur in einem (Haus 2). Der Praxistest prüft damit einen Lasttyp, den das Modell tatsächlich gelernt hat.
+  - Das Gefriergerät schaltet selbstständig im Takt und liefert ein natürliches Normalprofil für die Anomalieerkennung (Aufgabe 2).
+  - Die Einschränkung aus E2 (selbstständiges vs. manuelles Schalten) entfällt.
+- Folge: Die Schaltzeitpunkte des Gefriergeräts werden über die zweite Messsteckdose direkt vor dem Gerät automatisch erfasst; Wasserkocher und Monitor werden manuell protokolliert.
+- Noch zu prüfen: Leistungsangabe des Gefriergeräts, ob „No Frost" (Abtauheizung), Aufstellort (alle drei Geräte müssen an dieselbe Messsteckdose).
+- Bei Zustimmung: „Ventilator" überall durch „Gefriergerät" ersetzen (Exposé-Bezug, E2, Anforderungen R4).
+
 ---
 
 ## Offene Fragen
 - **Sprungschwelle:** 100 W ist zu hoch für den Praxistest. Monitor und Ventilator springen voraussichtlich nur um einige zehn Watt und würden nicht erkannt. Die Schwelle muss so niedrig liegen, dass diese Sprünge erfasst werden. Im REFIT-Gesamtsignal erzeugt eine niedrige Schwelle aber vermutlich viele Fehl-Events. Leistung der eigenen Testgeräte messen, sobald die Shelly da ist.
-- **Monitor vs. Ventilator:** Beide haben vermutlich ähnlich kleine, konstante Leistung. Unterscheidung bei 8-s-Abtastung möglicherweise schwierig, unabhängig von der Fensterlänge (Anlaufspitzen von Motoren dauern meist deutlich unter 1 s).
+- **Monitor vs. Ventilator:** Beide haben vermutlich ähnlich kleine, konstante Leistung. Unterscheidung bei 8-s-Abtastung möglicherweise schwierig, unabhängig von der Fensterlänge (Anlaufspitzen von Motoren dauern meist deutlich unter 1 s). Wird durch E14 gelöst, falls umgesetzt.
+- **Zuordnung der REFIT-Geräte zu Lasttypen:** offen für Mikrowelle, Deckenventilator, Heizlüfter.
 - Aufteilung Training/Validierung/Test: nach Häusern und/oder Zeitblöcken – welche Häuser.
 - Welche REFIT-Häuser genutzt werden (abhängig von der Abdeckung der Lasttypen).
 - Quelle und Format der annotierten REFIT-Anomalien (Rashid et al. 2019).
